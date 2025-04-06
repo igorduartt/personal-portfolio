@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { useLanguageStore } from "utils/languageStore";
+import { useLanguageStore } from "../store/languageStore";
 import { DecorativeElement } from "components/DecorativeElement";
 import { Separator } from "@/components/ui/separator";
 
@@ -15,28 +15,40 @@ import { Separator } from "@/components/ui/separator";
  * - Tech-inspired visual elements that align with the data science theme
  * - Typography that follows the design guidelines (bold headers, light body text)
  */
-export interface Props {
+interface Props {
   className?: string;
+}
+
+interface Content {
+  title: string;
+  description: string[];
+}
+
+interface LanguageContent {
+  en: Content;
+  pt: Content;
 }
 
 export function AboutSection({ className = "" }: Props) {
   const { language } = useLanguageStore();
-  const elementsRef = useRef<(HTMLElement | null)[]>([]);
+  const elementsRef = useRef<(HTMLDivElement | HTMLParagraphElement | null)[]>([]);
 
   // Bilingual content
-  const content = {
+  const content: LanguageContent = {
     en: {
       title: "About Me",
       description: [
-        "Psychologist and PhD student at the Faculty of Medicine, University of São Paulo (USP/Brazil), with a master's degree in Psychiatry and Behavioral Sciences (Federal University of Rio Grande do Sul) and an MBA in Data Science (USP). ",
-        "Currently, he is a Researcher at the National Center for Mental Health Research and Innovation (CISM/USP). I researched biomarkers for ADHD during my master's and am now studying ADHD trajectories and machine learning applications in mental health."
+        "I am a passionate software developer with expertise in web development and a strong focus on creating efficient, scalable solutions.",
+        "With a background in computer science and years of experience in the industry, I specialize in building modern web applications using cutting-edge technologies.",
+        "My approach combines technical excellence with a deep understanding of user needs, ensuring that every project delivers both functionality and value."
       ]
     },
     pt: {
       title: "Sobre Mim",
       description: [
-        "Psicólogo e doutorando na Faculdade de Medicina da Universidade de São Paulo (USP), com mestrado em Psiquiatria e Ciências do Comportamento (UFRGS) e MBA em Data Science (USP/Esalq).",
-        "Atualmente, Pesquisador no Centro Nacional de Pesquisa e Inovação em Saúde Mental (CISM/USP). Pesquisei biomarcadores para TDAH durante o mestrado e atualmente estuda trajetórias do TDAH e aplicações de machine learning em saúde mental."
+        "Sou um desenvolvedor de software apaixonado com experiência em desenvolvimento web e um forte foco em criar soluções eficientes e escaláveis.",
+        "Com formação em ciência da computação e anos de experiência na indústria, especializo-me em construir aplicações web modernas usando tecnologias de ponta.",
+        "Minha abordagem combina excelência técnica com uma profunda compreensão das necessidades do usuário, garantindo que cada projeto entregue tanto funcionalidade quanto valor."
       ]
     }
   };
@@ -92,7 +104,9 @@ export function AboutSection({ className = "" }: Props) {
       <div className="relative z-10">
         {/* Section heading with accent bar */}
         <div 
-          ref={(el) => (elementsRef.current[0] = el)}
+          ref={(el: HTMLDivElement | null) => {
+            elementsRef.current[0] = el;
+          }}
           className="fade-in-element fade-delay-1 space-y-3 mb-12"
         >
           <div className="h-1 w-20 bg-gradient-to-r from-teal-500 to-teal-300 rounded-full"></div>
@@ -106,7 +120,9 @@ export function AboutSection({ className = "" }: Props) {
           {activeContent.description.map((paragraph, index) => (
             <p 
               key={index} 
-              ref={(el) => (elementsRef.current[index + 1] = el)}
+              ref={(el: HTMLParagraphElement | null) => {
+                elementsRef.current[index + 1] = el;
+              }}
               className={`text-lg text-gray-600 font-light leading-relaxed fade-in-element tracking-wide fade-delay-${index + 2}`}
             >
               {paragraph}
@@ -116,7 +132,9 @@ export function AboutSection({ className = "" }: Props) {
         
         {/* Tech-inspired visual element - subtle data/tech design motif */}
         <div 
-          ref={(el) => (elementsRef.current[4] = el)}
+          ref={(el: HTMLDivElement | null) => {
+            elementsRef.current[4] = el;
+          }}
           className="mt-16 mb-8 fade-in-element fade-delay-4"
         >
           <div className="flex items-center space-x-2">
@@ -136,3 +154,5 @@ export function AboutSection({ className = "" }: Props) {
     </div>
   );
 }
+
+export default AboutSection;

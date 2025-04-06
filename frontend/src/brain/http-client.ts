@@ -219,78 +219,84 @@ export class HttpClient<SecurityDataType = unknown> {
     });
   };
 
-  public async *requestStream<T = any, E = any>({
+  public async *requestStream<T = any>({
+    url,
+    method = 'GET',
+    headers = {},
     body,
-    secure,
-    path,
-    type,
-    query,
-    format,
-    baseUrl,
-    cancelToken,
-    ...params
-  }: FullRequestParams): AsyncIterable<T> {
-    const secureParams =
-      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
-        this.securityWorker &&
-        (await this.securityWorker(this.securityData))) ||
-      {};
-    const requestParams = this.mergeRequestParams(params, secureParams);
-    const queryString = query && this.toQueryString(query);
-    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
-
-    let response;
+  }: RequestOptions): AsyncGenerator<T> {
     try {
-      response = await this.customFetch(
-        `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
-        {
-          ...requestParams,
-          headers: {
-            ...(requestParams.headers || {}),
-            ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
-          },
-          signal: (cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal) || null,
-          body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-        },
-      );
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
       if (!response.ok) {
-        throw new Error("Response not OK");
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is null');
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      const contentType = response.headers.get("Content-Type");
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        let chunk = decoder.decode(value, { stream: true });
-
-        let data;
-        if (contentType === "application/json") {
-          let chunk = decoder.decode(value, { stream: true });
-          try {
-            data = JSON.parse(chunk);
-          } catch (error) {
-            throw new Error(error);
-            continue;
-          }
-        } else if (contentType === "application/octet-stream") {
-          data = new Uint8Array(value);
-        } else {
-          let chunk = decoder.decode(value, { stream: true });
-          data = chunk;
+        
+        buffer += decoder.decode(value, { stream: true });
+        
+        try {
+          const data = JSON.parse(buffer);
+          yield data as T;
+          buffer = '';
+        } catch (error) {
+          // If we can't parse the buffer yet, continue reading
+          continue;
         }
-
-        yield data as T;
       }
     } catch (error) {
-      throw new Error(error);
-    } finally {
-      if (cancelToken) {
-        this.abortControllers.delete(cancelToken);
+      if (error instanceof Error) {
+        throw new Error(error.message);
       }
+      throw new Error('An unknown error occurred');
     }
   }
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let result = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  try {
+    return JSON.parse(result) as T;
+  } catch (error) {
+    throw new Error(`Failed to parse response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+interface RequestOptions {
+  url: string;
+  method?: string;
+  headers?: Record<string, string>;
+  body?: any;
 }
