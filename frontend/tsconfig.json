@@ -20,15 +20,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
-    "types": [
-      "firebase"
-    ],
+    "types": [],
     "allowJs": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "Node",
     "baseUrl": ".",
     "paths": {
       "brain": [
@@ -63,7 +58,7 @@
       ],
       "@/components/ui/*": [
         "./src/extensions/shadcn/components/*"
-      ],
+      ]
     }
   },
   "include": [
