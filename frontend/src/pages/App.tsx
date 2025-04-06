@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { LanguageToggle } from "components/LanguageToggle";
 import { useLanguageStore } from "utils/languageStore";
 import { Navigation } from "components/Navigation";
@@ -9,12 +9,24 @@ import { TechnicalSkillsSection } from "components/TechnicalSkillsSection";
 import { ProductionsSection } from "components/ProductionsSection";
 import { ContactSection } from "components/ContactSection";
 
+type Language = 'en' | 'pt';
+
+type ContentType = {
+  greeting: string;
+  subtitle: string;
+  description: string;
+};
+
+type ContentMap = {
+  [key in Language]: ContentType;
+};
+
 export default function App() {
   const { language } = useLanguageStore();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
 
   // Handle header styles based on scroll position
-  useEffect(() => {
+  React.useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setIsScrolled(true);
@@ -27,7 +39,7 @@ export default function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const content = {
+  const content: ContentMap = {
     en: {
       greeting: "Hi, I'm Igor Duarte",
       subtitle: "Psychologist, researcher, and data science enthusiast with a focus on mental health",
@@ -40,7 +52,7 @@ export default function App() {
     }
   };
 
-  const activeContent = content[language];
+  const activeContent = content[language as Language];
 
   return (
     <div className="min-h-screen bg-white">
